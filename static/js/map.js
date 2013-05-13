@@ -1,26 +1,25 @@
-/*global $, google, InfoBox */
+/*global $, google, InfoBox, _gaq */
 var simulation_manager = (function(){
     var ua_is_mobile = navigator.userAgent.indexOf('iPhone') !== -1 || navigator.userAgent.indexOf('Android') !== -1;
     
     var config = (function(){
         var params = {
-            center_start: new google.maps.LatLng(47.378, 8.540),
-            zoom_start: 13,
-            zoom_follow: 17,
+            version: '2013-01-07',
+            center_start: new google.maps.LatLng(45.181, 5.74),
+            zoom_start: 14,
+            zoom_min: 11,
+            zoom_max: 20,
+            zoom_follow: 19,
             zoom_station: 15,
-            zoom_mouseover_min: 7,
-            ft_id_mask: '812706',
-            ft_id_lines: '1497331',
-            ft_id_stations: '1497361',
+            zoom_mouseover_min: 13,
+            ft_id_mask: '--',
+            ft_id_lines: '1SUZnbUgOCfn95KMvrl72crz7KCnRguC2pDdXKUQ',
+            ft_id_stations: '151dgYiIaGmY4le3Q7OY0xSK83jdIgQmQ_trqkOY',
             json_paths: {
-                edges: 'static/geojson/edges-sbb.json',
-                stations: 'static/geojson/stations-sbb.json',
-                // WARNING: in production replace 0900 with [hhmm]
-                //      vehicles: 'api/vehicles/[hhmm]'
-                vehicles: 'api/vehicles/0900.json',
-                // WARNING: in production replace 8507000 with [station_id]
-                //      station_vehicles: 'api/station_vehicles/[station_id]/[hhmm]'
-                station_vehicles: 'api/station_vehicles/8507000/0900.json'
+                edges: 'static/geojson/edges-grenoble.json',
+                stations: 'static/geojson/stations-grenoble.json',
+                vehicles: 'feed/vehicles/grenoble/[hhmm]',
+                station_vehicles: 'feed/station_vehicles/grenoble/[station_id]/[hhmm]'
             }
         };
         
@@ -124,8 +123,8 @@ var simulation_manager = (function(){
             icons: [{
                 icon: {
                     path: 'M 0,-2 0,2',
-                    strokeColor: 'black',
-                    strokeOpacity: 1.0,          
+                    strokeColor: 'white',
+                    strokeOpacity: 1.0
                 },
                 repeat: '40px'
             }],
@@ -186,6 +185,10 @@ var simulation_manager = (function(){
                 points = points.concat(routes[ab_edges].points);
             });
             
+            route_highlight.setOptions({
+                strokeColor: vehicle.styles['background-color']
+            });
+            
             route_highlight.setPath(points);
             route_highlight.setMap(map);
 
@@ -196,7 +199,7 @@ var simulation_manager = (function(){
                 } else {
                     icon_offset += 2;
                 }
-
+                
                 var icons = route_highlight.get('icons');
                 icons[0].offset = icon_offset + 'px';
                 route_highlight.set('icons', icons);
@@ -286,11 +289,11 @@ var simulation_manager = (function(){
         var seconds_now = 0;
         var seconds_increment = null;
         var minute_now = null;
-
+        
         function getDaySeconds() {
             return seconds_now - delay;
         }
-
+        
         function init(hms) {
             seconds_increment = parseInt($('#time_multiply').val(), 10);
             
@@ -313,6 +316,7 @@ var simulation_manager = (function(){
             
             $('#time_multiply').change(function(){
                 seconds_increment = parseInt($(this).val(), 10);
+                _gaq.push(['_trackEvent', 'timer', 'sec_speed', $(this).val()]);
             });
             
             paintHM();
@@ -321,7 +325,6 @@ var simulation_manager = (function(){
                 if (seconds_now > 24*3600) {
                     seconds_now = 0;
                 }
-
                 paintHM();
                 
                 var hms_matches = timeContainer.text().match(/([0-9]{2}):[0-9]{2}$/);
@@ -366,6 +369,13 @@ var simulation_manager = (function(){
             this.subscriber_types = subscriber_types;
             
             el.click(function(){
+                if (el.hasClass('toggled')) {
+                    var subscribers = subscriber_types.disable;
+                    _gaq.push(['_trackEvent', 'vehicle', el_id + ' OFF ']);
+                } else {
+                    var subscribers = subscriber_types.enable;
+                    _gaq.push(['_trackEvent', 'vehicle', el_id + ' ON ']);
+                }
                 var subscribers = el.hasClass('toggled') ? subscriber_types.disable : subscriber_types.enable;
                 $.each(subscribers, function(index, fn){
                     fn();
@@ -456,6 +466,8 @@ var simulation_manager = (function(){
             vehicle_route.hide();
 
             $('.vehicle_name', $('#vehicle_info')).text(vehicle.name);
+            $('.vehicle_name', $('#vehicle_info')).css('background-color', vehicle.styles['background-color']);
+            $('.vehicle_name', $('#vehicle_info')).css('color', vehicle.styles['color']);
             
             var hms = timer.getTime();
             if (vehicle.has_multiple_days && (hms < vehicle.depS[0])) {
@@ -510,7 +522,7 @@ var simulation_manager = (function(){
             url = url.replace(/\[hhmm\]/, timer.getHM());
             
             $.ajax({
-                url: url,
+                url: url + '?v=' + config.getParam('version'),
                 dataType: 'json',
                 success: function(vehicles) {
                     vehicle_info_hide();
@@ -541,6 +553,8 @@ var simulation_manager = (function(){
             vehicle_route.init();
             
             $('#station_departures tbody tr a').live('click', function(){
+                _gaq.push(['_trackEvent', 'vehicle', 'station_panel_click']);
+                
                 var vehicle_id = $(this).attr('data-vehicle-id');
                 var vehicle = simulation_vehicles[vehicle_id];
                 simulation_panel.displayVehicle(vehicle);
@@ -550,6 +564,8 @@ var simulation_manager = (function(){
             });
             
             $('#vehicle_timetable tbody tr a').live('click', function(){
+                _gaq.push(['_trackEvent', 'station', 'vehicle_panel_click']);
+                
                 var station_id = $(this).attr('data-station-id');
                 var station_location = stationsPool.location_get(station_id);
                 if (station_location === null) { return; }
@@ -578,6 +594,8 @@ var simulation_manager = (function(){
             }
 
             $('#geolocation_click').click(function(){
+                _gaq.push(['_trackEvent', 'geolocation', 'browser_start']);
+                
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(function (position) {
                         geocoding_handle({'latLng': new google.maps.LatLng(position.coords.latitude, position.coords.longitude)});
@@ -591,6 +609,7 @@ var simulation_manager = (function(){
             });
             location_el.keypress(function(e) {
                 if(e.which === 13) {
+                    _gaq.push(['_trackEvent', 'geolocation', 'user_asks']);
                     geocoding_handle({'address': $(this).val()});
                 }
             });
@@ -668,23 +687,28 @@ var simulation_manager = (function(){
                 map: null,
                 position: new google.maps.LatLng(0, 0)
             });
+            
+            var stamen_map = new google.maps.StamenMapType('watercolor');
+            stamen_map.set('name', 'Stamen watercolor');
 
             var map_inited = false;
             var map_options = {
                 zoom: config.getParam('zoom_start'),
                 center: config.getParam('center_start'),
-                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                mapTypeId: google.maps.MapTypeId.TERRAIN,
                 styles: mapStyles,
                 disableDefaultUI: true,
                 zoomControl: true,
                 scaleControl: true,
                 streetViewControl: true,
                 overviewMapControl: true,
+                minZoom: config.getParam('zoom_min'),
+                maxZoom: config.getParam('zoom_max'),
                 rotateControl: true,
                 mapTypeControl: true,
                 mapTypeControlOptions: {
                     position: google.maps.ControlPosition.TOP_LEFT,
-                    mapTypeIds: [google.maps.MapTypeId.ROADMAP, google.maps.MapTypeId.SATELLITE, 'stamen']
+                    mapTypeIds: [google.maps.MapTypeId.ROADMAP, google.maps.MapTypeId.TERRAIN, google.maps.MapTypeId.SATELLITE, 'stamen']
                 }
             };
 
@@ -703,9 +727,6 @@ var simulation_manager = (function(){
             }
 
             map = new google.maps.Map(document.getElementById("map_canvas"), map_options);
-            
-            var stamen_map = new google.maps.StamenMapType('watercolor');
-            stamen_map.set('name', 'Stamen watercolor');
             map.mapTypes.set('stamen', stamen_map);
 
             function map_layers_add(){
@@ -751,7 +772,7 @@ var simulation_manager = (function(){
                     from: config.getParam('ft_id_mask')
                   },
                   clickable: false,
-                  map: map
+                  // map: map
                 });
 
                 function trigger_toggleLayerVisibility() {
@@ -768,7 +789,7 @@ var simulation_manager = (function(){
                     }
 
                     var zoom = map.getZoom();
-                    toggleLayerVisibility(stations_layer, zoom >= 12);            
+                    toggleLayerVisibility(stations_layer, zoom >= 12);
                 }
 
                 google.maps.event.addListener(map, 'idle', trigger_toggleLayerVisibility);
@@ -783,6 +804,12 @@ var simulation_manager = (function(){
 
                     map_layers_add();
                     listener_helpers.notify('map_init');
+                    
+                    // Analytics init
+                    _gaq.push(['_trackEvent', 'map', 'init', '', 0, true]);
+                    google.maps.event.addListener(map, 'maptypeid_changed', function() {
+                        _gaq.push(['_trackEvent', 'map', 'type_changed', map.getMapTypeId()]);
+                    });
                 }
             });
         }
@@ -876,7 +903,6 @@ var simulation_manager = (function(){
             };
         })();
 
-
         // Vehicle icons manager. 
         // Roles:
         // - keep a reference for each vehicle type (IC, ICE, etc..)
@@ -888,7 +914,7 @@ var simulation_manager = (function(){
                 }
 
                 var icon = new google.maps.MarkerImage(
-                    'static/images/vehicle-types/' + type + '.png',
+                    'static/images/vehicle-types/' + type + '.png?v=' + config.getParam('version'),
                      new google.maps.Size(20, 20),
                      new google.maps.Point(0, 0),
                      new google.maps.Point(10, 10)
@@ -910,6 +936,73 @@ var simulation_manager = (function(){
             closeBoxURL: ''
         });
         
+        var vehicle_styles = (function(){
+            var styles = {
+                'background-color': {
+                    'tram_A'    : '#0066cc',
+                    'tram_B'    : '#009933',
+                    'tram_C'    : '#cc0066',
+                    'tram_D'    : '#ff9900',
+                    'bus_1'     : '#ff6699',
+                    'bus_11'    : '#ffff66',
+                    'bus_13'    : '#cc3333',
+                    'bus_16'    : '#6699cc',
+                    'bus_17'    : '#009933',
+                    'bus_21'    : '#cccc99',
+                    'bus_23'    : '#ffcc00',
+                    'bus_26'    : '#ffff00',
+                    'bus_30'    : '#66cccc',
+                    'bus_31'    : '#993399',
+                    'bus_32'    : '#cccc00',
+                    'bus_33'    : '#ff9933',
+                    'bus_34'    : '#cc99cc',
+                    'bus_41'    : '#66cccc',
+                    'bus_43'    : '#ccffcc',
+                    'bus_51'    : '#cccc00',
+                    'bus_54'    : '#cccccc',
+                    'bus_55'    : '#6699cc',
+                    'bus_56'    : '#ff9900',
+                    'bus_58'    : '#6699cc',
+                    'bus_CO'    : '#ffff00',
+                    'bus_PO'    : '#99cc33'
+                },
+                'color': {
+                    'tram_A'    : '#FFFFFF',
+                    'tram_B'    : '#FFFFFF',
+                    'tram_C'    : '#FFFFFF',
+                    'tram_D'    : '#FFFFFF',
+                    'bus_1'     : '#FFFFFF',
+                    'bus_11'    : '#000000',
+                    'bus_13'    : '#FFFFFF',
+                    'bus_16'    : '#FFFFFF',
+                    'bus_17'    : '#FFFFFF',
+                    'bus_21'    : '#000000',
+                    'bus_23'    : '#000000',
+                    'bus_26'    : '#000000',
+                    'bus_30'    : '#000000',
+                    'bus_31'    : '#FFFFFF',
+                    'bus_32'    : '#000000',
+                    'bus_33'    : '#000000',
+                    'bus_34'    : '#000000',
+                    'bus_41'    : '#000000',
+                    'bus_43'    : '#000000',
+                    'bus_51'    : '#000000',
+                    'bus_54'    : '#000000',
+                    'bus_55'    : '#FFFFFF',
+                    'bus_56'    : '#000000',
+                    'bus_58'    : '#FFFFFF',
+                    'bus_CO'    : '#000000',
+                    'bus_PO'    : '#FFFFFF'
+                }
+            };
+            
+            return {
+                getStyle: function(style, type, default_value) {
+                    return typeof(styles[style][type]) === 'undefined' ? default_value : styles[style][type]
+                }
+            }
+        })();
+        
         var vehicleIDs = [];
 
         function Vehicle(params) {
@@ -917,6 +1010,12 @@ var simulation_manager = (function(){
                 var time_ar = [];
                 
                 $.each(times, function(k, time){
+                    // 32855 = 9 * 3600 + 7 * 60 + 35
+                    if ((typeof time) === 'number') {
+                        time_ar.push(time);
+                        return;
+                    }
+                    
                     // 09:07:35
                     if (time.match(/^[0-9]{2}:[0-9]{2}:[0-9]{2}$/) !== null) {
                         time_ar.push(time_helpers.hms2s(time));
@@ -929,8 +1028,6 @@ var simulation_manager = (function(){
                         time_ar.push(time_helpers.hms2s(hms));
                         return;
                     }
-                    // 32855 = 9 * 3600 + 7 * 60 + 35
-                    time_ar.push(time);
                 });
                 
                 return time_ar;
@@ -945,12 +1042,16 @@ var simulation_manager = (function(){
             this.depS               = parseTimes(params.deps);
             this.arrS               = parseTimes(params.arrs);
             this.has_multiple_days  = has_multiple_days;
+            this.styles             = {
+                'background-color'  : vehicle_styles.getStyle('background-color', params.type, '#FFFFFF'),
+                'color'             : vehicle_styles.getStyle('color', params.type, '#000000'),
+            };
             
             $.each(params.edges, function(k, edges) {
                 if (k === 0) { return; }
                 linesPool.routeAdd(edges);
             });
-
+            
             var marker = new google.maps.Marker({
                 position: new google.maps.LatLng(0, 0),
                 icon: imagesPool.iconGet(params.type),
@@ -964,6 +1065,7 @@ var simulation_manager = (function(){
             var that = this;
 
             google.maps.event.addListener(marker, 'click', function() {
+                _gaq.push(['_trackEvent', 'vehicle', 'click']);
                 simulation_panel.displayVehicle(that);
             });
 
@@ -979,6 +1081,8 @@ var simulation_manager = (function(){
 
                 var popup_div = $('#vehicle_popup');
                 $('span.vehicle_name', popup_div).text(params.name);
+                $('span.vehicle_name', popup_div).css('background-color', that.styles['background-color']);
+                $('span.vehicle_name', popup_div).css('color', that.styles['color']);
                 $('.status', popup_div).text(marker.get('status'));
 
                 vehicle_ib.setContent($('#vehicle_popup_container').html());
@@ -1079,7 +1183,7 @@ var simulation_manager = (function(){
                 url = url.replace(/\[hhmm\]/, timer.getHM());
                 
                 $.ajax({
-                    url: url,
+                    url: url + '?v=' + config.getParam('version'),
                     dataType: 'json',
                     success: function(vehicles) {
                         $.each(vehicles, function(index, data) {
@@ -1103,13 +1207,13 @@ var simulation_manager = (function(){
     listener_helpers.subscribe('map_init', function(){
         // LOAD network lines 
         $.ajax({
-            url: config.getParam('json_paths').edges,
+            url: config.getParam('json_paths').edges + '?v=' + config.getParam('version'),
             dataType: 'json',
             success: function(geojson) {
                 linesPool.loadGeoJSONEdges(geojson.features);
                 // network lines loaded => LOAD stations
                 $.ajax({
-                    url: config.getParam('json_paths').stations,
+                    url: config.getParam('json_paths').stations + '?v=' + config.getParam('version'),
                     dataType: 'json',
                     success: function(geojson) {
                         $.each(geojson.features, function(index, feature) {
@@ -1131,10 +1235,11 @@ var simulation_manager = (function(){
     
     function ui_init() {
         var view_mode = config.getUserParam('view_mode');
-        
+
         var panel_display = (ua_is_mobile === false) && (view_mode !== 'iframe');
         if (panel_display) {
             $('#panel').removeClass('hidden');
+            $('#github_badge').removeClass('hidden');
         }
         
         if (config.getUserParam('time_multiply') !== null) {
@@ -1168,9 +1273,7 @@ var simulation_manager = (function(){
         init: function(){
             ui_init();
             geolocation_init();
-            // WARNING: in production, remove '09:00:00', use
-            //      timer.init();
-            timer.init('09:00:00');
+            timer.init();
             map_helpers.init();
             simulation_panel.init();
         },

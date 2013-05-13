@@ -18,6 +18,13 @@ body {
 .hidden {
     display: none;
 }
+
+#github_badge {
+    z-index: 1;
+    position: absolute;
+    top: 0px;
+    right: 0px;
+}
 /* END */
 
 /* SIMULATION PANEL */
@@ -118,6 +125,11 @@ table.panel_table tbody tr.passed td a {
 td.station {
     width: 150px;
 }
+
+#vehicle_info span.vehicle_name {
+    padding: 0px 2px 0px 2px;
+    font-weight: bold;
+}
 /* END */
 
 /* START vehicle popup */
@@ -136,5 +148,18 @@ td.station {
 
 #vehicle_popup span.vehicle_name {
     font-weight: bold;
+    padding: 0px 2px 0px 2px;
+}
+/* END */
+
+/* Social media bar */
+#social {
+    margin-top: 10px;
+}
+
+#social > div {
+    width: 90px;
+    overflow: hidden;
+    float: left;
 }
 /* END */

@@ -1,26 +1,69 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:og="http://ogp.me/ns#">
     <head>
-        <title>Vehicle simulator</title>
+        <title>TAG Grenoble network simulator</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
         <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        
+        <link href="static/images/favicon.ico" rel="shortcut icon" />
+        <link rel="alternate" type="application/rss+xml" title="TAG Grenoble network simulator" href="http://blog.vasile.ch/tag/swisstrains/feed/" />
+        <meta property="og:title" content="TAG Grenoble network simulator"/>
+        <meta property="og:type" content="non_profit"/>
+        <meta property="og:url" content="http://simcity.vasile.ch/grenoble/"/>
+        <meta property="og:image" content="http://simcity.vasile.ch/grenoble/static/images/embed_social_200px.png?v=2013-01-07"/>
 
         <link href="static/css/reset.css" rel="stylesheet" type="text/css" />
-        <link href="static/css/style.css" rel="stylesheet" type="text/css" />
+        <link href="static/css/style.css?v=2013-01-12" rel="stylesheet" type="text/css" />
 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
         <script src="http://maps.googleapis.com/maps/api/js?v=3.10&amp;sensor=false&amp;libraries=geometry"></script>
         <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.1"></script>
         
         <script src="static/js/infobox_packed.js"></script>
-        <script src="static/js/map.js"></script>
+        <script src="static/js/map.js?v=2013-01-19"></script>
+
+        <script type="text/javascript">
+          var _gaq = _gaq || [];
+          _gaq.push(['_setAccount', 'UA-1022230-4']);
+          _gaq.push(['_setCustomVar', 1, 'Simulation', 'Grenoble']);
+          _gaq.push(['_trackPageview']);
+          (function() {
+            var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+            ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+          })();
+        </script>
     </head>
     <body>
+        <div id="github_badge" class="hidden">
+            <a href="https://github.com/vasile/vehicle-simulator" target="_blank"><img src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub"></a>
+        </div>
         <div id="map_canvas"></div>
         <div id="panel" class="hidden">
             <div>
-                <h3>Vehicle simulator</h3>
-                <p>Project information available on <a href="https://github.com/vasile/vehicle-simulator" target="_blank">Github</a></p>
+                <h3>TAG network simulator</h3>
+                <div id="social">
+                    <div>
+                        <a href="https://twitter.com/share" class="twitter-share-button" data-text="Grenoble public transport simulator" data-lang="en">Tweet</a>
+                        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+                    </div>
+                    <div>
+                        <iframe src="http://www.facebook.com/plugins/like.php?href=http%3A%2F%2Fsimcity.vasile.ch%2Fgrenoble%2F&amp;send=false&amp;layout=button_count&amp;width=100&amp;show_faces=true&amp;action=like&amp;colorscheme=light&amp;font&amp;height=21" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:100px; height:21px;" allowTransparency="true"></iframe>
+                    </div>
+                    <div>
+                        <g:plusone size="medium"></g:plusone>
+                        <script type="text/javascript">
+                          (function() {
+                            var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+                            po.src = 'https://apis.google.com/js/plusone.js';
+                            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+                          })();
+                        </script>
+                    </div>
+                </div>
+                <br clear="both" />
+                <div>This map is a simulation based on the timetables of the <a href="http://www.tag.fr/" target="_blank">TAG</a> Grenoble public transport network. More information about this project you can find on <a href="https://github.com/vasile/vehicle-simulator" target="_blank">Github</a> or you can simply <a href="http://www.vasile.ch/" target="_blank">contact me</a>.</div>
+                <div>Timetables update: January 2013</div>
             </div>
             <div class="section">
                 <b>Time:</b> <span id="day_time"></span> 
