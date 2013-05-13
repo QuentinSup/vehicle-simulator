@@ -18,8 +18,8 @@ var simulation_manager = (function(){
             json_paths: {
                 edges: 'static/geojson/edges-grenoble.json',
                 stations: 'static/geojson/stations-grenoble.json',
-                vehicles: 'feed/vehicles/grenoble/[hhmm]',
-                station_vehicles: 'feed/station_vehicles/grenoble/[station_id]/[hhmm]'
+                vehicles: 'feed/app/routes/vehicles/?hm=[hhmm]',
+                station_vehicles: 'feed/app/routes/station_vehicles/?station_id=[station_id]&hm=[hhmm]'
             }
         };
         
@@ -522,7 +522,7 @@ var simulation_manager = (function(){
             url = url.replace(/\[hhmm\]/, timer.getHM());
             
             $.ajax({
-                url: url + '?v=' + config.getParam('version'),
+                url: url + '&v=' + config.getParam('version'),
                 dataType: 'json',
                 success: function(vehicles) {
                     vehicle_info_hide();
@@ -1183,7 +1183,7 @@ var simulation_manager = (function(){
                 url = url.replace(/\[hhmm\]/, timer.getHM());
                 
                 $.ajax({
-                    url: url + '?v=' + config.getParam('version'),
+                    url: url + '&v=' + config.getParam('version'),
                     dataType: 'json',
                     success: function(vehicles) {
                         $.each(vehicles, function(index, data) {
